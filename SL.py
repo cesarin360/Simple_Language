@@ -142,7 +142,7 @@ class CalcParser(Parser):
     #NUMEROS NEGATIVOS   
     @_('"-" expr %prec UMINUS')
     def expr(self, p):
-        if p.expr.isnumeric():
+        if str(p.expr).isnumeric():
             return -p.expr
         else:
             print(self.FAIL+"Error de tipo: ")
@@ -225,21 +225,23 @@ class CalcParser(Parser):
     @_('IF condition ":" statement ELSE ":" statement')
     def statement(self, p):
         try:
-            if type(p.statement0) == tuple:
-                if p.condition:
-                    self.names[p.statement0[0]] = p.statement0[1]
-                else:
-                    self.names[p.statement1[0]] = p.statement1[1]
+            if p.condition:
+                self.names[p.statement0[0]] = p.statement0[1]
+            else:
+                self.names[p.statement1[0]] = p.statement1[1]
         except:
             print(self.FAIL+"Error de sintaxis en la condicional IF."+self.RESET)
+
+    @_('IF condition ":" statement ELSE statement')
+    def statement(self, p):
+        print(self.FAIL+"Error de sintaxis en la condicional IF. Falto ':'"+self.RESET)
 
     #CONDICIONAL IF
     @_('IF condition ":" statement')
     def statement(self, p):
         try:
-            if type(p.statement0) == tuple:
-                if p.condition:
-                    self.names[p.statement[0]] = p.statement[1]
+            if p.condition:
+                self.names[p.statement[0]] = p.statement[1]
         except:
             print(self.FAIL+"Error de sintaxis. En la condicional IF."+self.RESET)
 
