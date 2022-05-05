@@ -1,8 +1,7 @@
 from ast import Assign, expr
-from lib2to3.pgen2.token import EQUAL
-from sre_constants import REPEAT
 from sly import Lexer, Parser
 
+#Analizador léxico
 class CalcLexer(Lexer):
     tokens = { ID, STRING, NUMBER, IF, ELSE, SPRINT, 
                 STR, INT, EQ, ASSIGN_VAR, TRUE, FALSE, 
@@ -34,8 +33,10 @@ class CalcLexer(Lexer):
     M = r'>'
     L = r'<'
 
+    #Asignar una variable
     ASSIGN_VAR = r':='
 
+    #Numeros
     @_(r'\d+')
     def NUMBER(self, t):
         t.value = int(t.value)
@@ -49,6 +50,7 @@ class CalcLexer(Lexer):
         print("Caracter ilegal '%s'" % t.value[0])
         self.index += 1
 
+#Analizador Sintáctico
 class CalcParser(Parser):
     tokens = CalcLexer.tokens
     precedence = (
@@ -62,6 +64,7 @@ class CalcParser(Parser):
         self.FAIL = '\033[91m' #RED
         self.RESET = '\033[0m' #RESET COLOR
 
+    #Bucle repeat
     @_('REPEAT expr ":" expr')
     def statement(self, p):
         if type(p.expr0) == int:
@@ -77,6 +80,7 @@ class CalcParser(Parser):
         else:
             print(self.FAIL+"Error de tipo: debde ser de tipo numerico."+self.RESET)
 
+    #Asignar una variable al diccionario de variables
     @_('ID ASSIGN_VAR expr')
     def statement(self, p):
         try:
@@ -85,6 +89,7 @@ class CalcParser(Parser):
             print(self.FAIL+"Error de sintaxis: Ha ocurrido un error")
             print("En la asiganación de la variable."+self.RESET)
 
+    #Asignar una variable dentro de un IF o ELSE
     @_('ID "=" expr')
     def statement(self, p):
         try:
@@ -100,6 +105,7 @@ class CalcParser(Parser):
         if p.expr != None:
             print(p.expr)
 
+    #SUMA
     @_('expr "+" expr')
     def expr(self, p):
         try:
@@ -107,6 +113,7 @@ class CalcParser(Parser):
         except:
             print(self.FAIL+"Ha ocurrido un error en la suma."+self.RESET)
 
+    #RESTA
     @_('expr "-" expr')
     def expr(self, p):
         try:
@@ -114,6 +121,7 @@ class CalcParser(Parser):
         except:
             print(self.FAIL+"Ha ocurrido un error en la suma."+self.RESET)
 
+    #MULTIPLICACIÓN
     @_('expr "*" expr')
     def expr(self, p):
         try:
@@ -121,6 +129,7 @@ class CalcParser(Parser):
         except:
             print(self.FAIL+"Ha ocurrido un error en la multiplicación."+self.RESET)
 
+    #DIVISIÓN
     @_('expr "/" expr')
     def expr(self, p):
         try:
@@ -129,7 +138,8 @@ class CalcParser(Parser):
             print(self.FAIL+"No es posible dividir entre 0."+self.RESET)
         except:
             print(self.FAIL+"Ha ocurrido un error de sintaxis."+self.RESET)
-        
+
+    #NUMEROS NEGATIVOS   
     @_('"-" expr %prec UMINUS')
     def expr(self, p):
         if p.expr.isnumeric():
@@ -142,6 +152,7 @@ class CalcParser(Parser):
     def expr(self, p):
         return p.expr
 
+    #CADENAS
     @_('STRING')
     def expr(self, p):
         try:
@@ -162,6 +173,7 @@ class CalcParser(Parser):
     def expr(self, p):
         return False
 
+    #CONDICIÓN IGUAL
     @_('expr EQ expr')
     def condition(self, p):
         try:
@@ -169,13 +181,15 @@ class CalcParser(Parser):
         except:
             print(self.FAIL+"Error: condición invalida."+self.RESET)
 
+    #CONDICIÓN MAYOR O IGUAL
     @_('expr ME expr')
     def condition(self, p):
         try:
             return True if p.expr0 >= p.expr1 else False
         except:
             print(self.FAIL+"Error: condición invalida."+self.RESET)
-    
+
+    #CONDICIÓN MENOR O IGUAL
     @_('expr LE expr')
     def condition(self, p):
         try:
@@ -183,6 +197,7 @@ class CalcParser(Parser):
         except:
             print(self.FAIL+"Error: condición invalida."+self.RESET)
     
+    #CONDICIÓN DIFERENTE
     @_('expr DF expr')
     def condition(self, p):
         try:
@@ -190,6 +205,7 @@ class CalcParser(Parser):
         except:
             print(self.FAIL+"Error: condición invalida."+self.RESET)
 
+    #CONDICIÓN MAYOR QUE
     @_('expr M expr')
     def condition(self, p):
         try:
@@ -197,6 +213,7 @@ class CalcParser(Parser):
         except:
             print(self.FAIL+"Error: condición invalida."+self.RESET)
     
+    #CONDICIÓN MENOR QUE
     @_('expr L expr')
     def condition(self, p):
         try:
@@ -204,6 +221,7 @@ class CalcParser(Parser):
         except:
             print(self.FAIL+"Error: condición invalida."+self.RESET)
 
+    #CONDICIONAL IF Y ELSE
     @_('IF condition ":" statement ELSE ":" statement')
     def statement(self, p):
         try:
@@ -215,6 +233,7 @@ class CalcParser(Parser):
         except:
             print(self.FAIL+"Error de sintaxis en la condicional IF."+self.RESET)
 
+    #CONDICIONAL IF
     @_('IF condition ":" statement')
     def statement(self, p):
         try:
@@ -224,6 +243,7 @@ class CalcParser(Parser):
         except:
             print(self.FAIL+"Error de sintaxis. En la condicional IF."+self.RESET)
 
+    #IMPRIMIR
     @_('SPRINT "(" expr ")"')
     def expr(self, p):
         try:
@@ -239,6 +259,7 @@ class CalcParser(Parser):
     def expr(self, p):
         return p.INT
 
+    #RETORNAR VALOR DE UNA VARIABLE
     @_('ID')
     def expr(self, p):
         try:
@@ -251,6 +272,8 @@ if __name__ == '__main__':
     lexer = CalcLexer()
     parser = CalcParser()
     line_count = 1
+    print('\t\t\t'+'\033[93m'+"*********** SL (Simple Language) ***********")
+    print('\t\t\t'+"   *********** Versión: 1.0.2 ***********"+'\033[0m')
     while True:
         try:
             text = input('Line '+str(line_count) + '> ')
