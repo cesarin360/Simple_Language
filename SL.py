@@ -1,5 +1,6 @@
 from ast import Assign, expr
 from sly import Lexer, Parser
+import os
 
 #Analizador léxico
 class CalcLexer(Lexer):
@@ -47,7 +48,7 @@ class CalcLexer(Lexer):
         self.lineno += t.value.count('\n')
 
     def error(self, t):
-        print("Caracter ilegal '%s'" % t.value[0])
+        print("\033[91mCaracter ilegal '%s'" % t.value[0]+"\033[0m")
         self.index += 1
 
 #Analizador Sintáctico
@@ -63,6 +64,7 @@ class CalcParser(Parser):
         self.names = { }
         self.FAIL = '\033[91m' #RED
         self.RESET = '\033[0m' #RESET COLOR
+        self.GREEN = '\033[92m'
 
     #Bucle repeat
     @_('REPEAT expr ":" expr')
@@ -72,13 +74,13 @@ class CalcParser(Parser):
                 try:
                     ST = p.expr1
                     for _ in range(p.expr0):
-                        print(ST) if p.expr1 != None else ""
+                        print(self.GREEN+ST+self.RESET) if p.expr1 != None else ""
                 except:
                     print(self.FAIL+"Ha ocurrido un error de sintaxis."+self.RESET)
             else:
                 print(self.FAIL+"El número de repeticiones debe ser igual o mayor a 1."+self.RESET)
         else:
-            print(self.FAIL+"Error de tipo: debde ser de tipo numerico."+self.RESET)
+            print(self.FAIL+"Error de tipo: dede ser de tipo numerico."+self.RESET)
 
     #Asignar una variable al diccionario de variables
     @_('ID ASSIGN_VAR expr')
@@ -103,7 +105,7 @@ class CalcParser(Parser):
     @_('expr')
     def statement(self, p):
         if p.expr != None:
-            print(p.expr)
+            print(self.GREEN+str(p.expr)+self.RESET)
 
     #SUMA
     @_('expr "+" expr')
@@ -119,7 +121,7 @@ class CalcParser(Parser):
         try:
             return p.expr0 - p.expr1
         except:
-            print(self.FAIL+"Ha ocurrido un error en la suma."+self.RESET)
+            print(self.FAIL+"Ha ocurrido un error en la resta."+self.RESET)
 
     #MULTIPLICACIÓN
     @_('expr "*" expr')
@@ -232,7 +234,9 @@ class CalcParser(Parser):
         except:
             print(self.FAIL+"Error de sintaxis en la condicional IF."+self.RESET)
 
-    @_('IF condition ":" statement ELSE statement')
+    @_('IF condition ":" statement ELSE statement',
+       'IF condition statement ELSE ":" statement',
+       'IF condition statement')
     def statement(self, p):
         print(self.FAIL+"Error de sintaxis en la condicional IF. Falto ':'"+self.RESET)
 
@@ -267,18 +271,27 @@ class CalcParser(Parser):
         try:
             return self.names[p.ID]
         except LookupError:
-            print(self.FAIL+"Nombre indefinido '%s'" % p.ID+self.RESET)
+            print(self.FAIL+"Identificador indefinido '%s'" % p.ID+self.RESET)
             return 0
 
 if __name__ == '__main__':
     lexer = CalcLexer()
     parser = CalcParser()
+    os.system('cls')
     line_count = 1
-    print('\t\t\t'+'\033[93m'+"*********** SL (Simple Language) ***********")
-    print('\t\t\t'+"   *********** Versión: 1.0.2 ***********"+'\033[0m')
+    def encabezado():
+        print('\t\t\t'+'\033[93m'+"*********** SL (Simple Language) ***********")
+        print('\t\t\t'+"   *********** Versión: 1.0.3 ***********"+'\033[0m')
+    encabezado()
     while True:
         try:
             text = input('Line '+str(line_count) + '> ')
+            if 'clear' in text:
+                clear = lambda: os.system('cls')
+                clear()
+                text = ""
+                encabezado()
+                line_count = 0
             line_count += 1 
         except EOFError:
             break
