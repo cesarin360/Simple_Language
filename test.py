@@ -162,6 +162,8 @@ if __name__ == '__main__':
         except EOFError:
             break
         if text:
+            text = open("test.txt", "r").read()
+            print(text)
             try:
                 parser.parse(lexer.tokenize(text))
             except:

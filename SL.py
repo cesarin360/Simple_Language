@@ -127,6 +127,7 @@ class CalcParser(Parser):
     @_('expr "*" expr')
     def expr(self, p):
         try:
+            print(p.expr0 * p.expr1)
             return p.expr0 * p.expr1
         except:
             print(self.FAIL+"Ha ocurrido un error en la multiplicación."+self.RESET)
@@ -285,15 +286,24 @@ if __name__ == '__main__':
     encabezado()
     while True:
         try:
+            file = []
             text = input('Line '+str(line_count) + '> ')
-            if 'clear' in text:
+            if '__clear__' in text:
                 clear = lambda: os.system('cls')
                 clear()
                 text = ""
                 encabezado()
                 line_count = 0
-            line_count += 1 
+            line_count += 1
+
+            if '__file__' in text:
+                text = input('Ingrese path: ')
+                file = open(text, 'r').readlines()
+                text = ''
         except EOFError:
             break
         if text:
             parser.parse(lexer.tokenize(text))
+        if file:
+            for i in file:
+                parser.parse(lexer.tokenize(i))
